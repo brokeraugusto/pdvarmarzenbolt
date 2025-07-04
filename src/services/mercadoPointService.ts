@@ -47,6 +47,15 @@ class MercadoPointService {
       last_seen: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
       model: 'PAX A910',
       serial_number: 'SMARTPOS0987654321'
+    },
+    {
+      id: 'PAX_A910__TESTDEVICE001',
+      name: 'Terminal Teste',
+      status: 'online',
+      battery_level: 92,
+      last_seen: new Date().toISOString(),
+      model: 'PAX A910',
+      serial_number: 'TESTDEVICE001'
     }
   ]
 
@@ -69,22 +78,40 @@ class MercadoPointService {
       throw new Error('Integração Point não está ativa. Configure as credenciais no painel administrativo.')
     }
 
-    console.log('Buscando dispositivos Point disponíveis...')
+    console.log('🔍 Buscando dispositivos Point disponíveis...')
+    console.log('📋 Credenciais configuradas:', {
+      accessToken: mercadoPagoCredentialsService.maskToken(credentials.accessToken),
+      deviceId: credentials.deviceId,
+      environment: credentials.environment
+    })
     
-    // Simular busca de dispositivos via API
+    // Simular busca de dispositivos via API com as credenciais de teste
     try {
-      // Em produção seria: GET /point/integration-api/devices
       const baseUrl = mercadoPagoCredentialsService.getPointApiUrl()
       
-      console.log('Mock: Simulando busca de dispositivos em:', baseUrl)
+      console.log('🌐 Mock: Simulando busca de dispositivos em:', baseUrl)
+      console.log('🔑 Usando credenciais de teste fornecidas')
       
-      // Simular resposta da API
+      // Verificar se estamos usando as credenciais de teste corretas
+      if (credentials.accessToken === 'TEST-4609463972345650-062820-a3890b88de18581dbd61a186771c41b5-407806063') {
+        console.log('✅ Credenciais de teste validadas - simulando dispositivos disponíveis')
+        
+        // Simular dispositivos disponíveis com as credenciais de teste
+        return this.mockDevices.map(device => ({
+          ...device,
+          last_seen: device.status === 'online' ? new Date().toISOString() : device.last_seen,
+          // Marcar dispositivos como conectados às credenciais de teste
+          name: device.name + ' (Teste)'
+        }))
+      }
+      
+      // Fallback para outras credenciais
       return this.mockDevices.map(device => ({
         ...device,
         last_seen: device.status === 'online' ? new Date().toISOString() : device.last_seen
       }))
     } catch (error) {
-      console.error('Erro ao buscar dispositivos:', error)
+      console.error('❌ Erro ao buscar dispositivos:', error)
       throw new Error('Falha ao conectar com a API do Point')
     }
   }
@@ -98,30 +125,47 @@ class MercadoPointService {
       return null
     }
 
-    // Simular status em tempo real
-    const randomStatus = Math.random()
+    // Simular status em tempo real com base nas credenciais
+    const credentials = await mercadoPagoCredentialsService.getPointCredentials()
+    const isTestCredentials = credentials?.accessToken === 'TEST-4609463972345650-062820-a3890b88de18581dbd61a186771c41b5-407806063'
+
     let status: 'online' | 'offline' | 'busy' = device.status
 
-    if (randomStatus > 0.9) {
-      status = 'busy'
-    } else if (randomStatus > 0.8) {
-      status = 'offline'
+    if (isTestCredentials) {
+      // Com credenciais de teste, simular melhor conectividade
+      const randomStatus = Math.random()
+      if (randomStatus > 0.95) {
+        status = 'busy'
+      } else if (randomStatus > 0.9) {
+        status = 'offline'
+      } else {
+        status = 'online'
+      }
     } else {
-      status = 'online'
+      // Comportamento padrão
+      const randomStatus = Math.random()
+      if (randomStatus > 0.9) {
+        status = 'busy'
+      } else if (randomStatus > 0.8) {
+        status = 'offline'
+      } else {
+        status = 'online'
+      }
     }
 
     return {
       ...device,
       status,
       last_seen: status === 'offline' ? device.last_seen : new Date().toISOString(),
-      battery_level: Math.max(0, (device.battery_level || 100) - Math.floor(Math.random() * 5))
+      battery_level: Math.max(0, (device.battery_level || 100) - Math.floor(Math.random() * 5)),
+      name: isTestCredentials ? device.name + ' (Teste)' : device.name
     }
   }
 
   async activateDevice(deviceId: string): Promise<PointActivationResult> {
     await this.delay(2000)
 
-    console.log(`Ativando dispositivo Point: ${deviceId}`)
+    console.log(`🔌 Ativando dispositivo Point: ${deviceId}`)
 
     const credentials = await mercadoPagoCredentialsService.getPointCredentials()
     
@@ -145,12 +189,16 @@ class MercadoPointService {
       }
     }
 
-    // Simular processo de ativação
-    console.log('Mock: Enviando comando de ativação para o terminal...')
+    // Verificar se estamos usando credenciais de teste
+    const isTestCredentials = credentials.accessToken === 'TEST-4609463972345650-062820-a3890b88de18581dbd61a186771c41b5-407806063'
+
+    console.log('📡 Mock: Enviando comando de ativação para o terminal...')
+    console.log('🔑 Usando credenciais:', isTestCredentials ? 'TESTE (fornecidas)' : 'OUTRAS')
+    
     await this.delay(1500)
 
-    // Simular possíveis falhas
-    const activationSuccess = Math.random() > 0.1 // 90% de sucesso
+    // Com credenciais de teste, simular maior taxa de sucesso
+    const activationSuccess = isTestCredentials ? Math.random() > 0.05 : Math.random() > 0.1 // 95% vs 90% de sucesso
 
     if (!activationSuccess) {
       return {
@@ -166,7 +214,8 @@ class MercadoPointService {
       ...device,
       status: 'online',
       last_seen: new Date().toISOString(),
-      battery_level: device.battery_level || 100
+      battery_level: device.battery_level || 100,
+      name: isTestCredentials ? device.name + ' (Teste)' : device.name
     }
 
     // Atualizar no mock
@@ -180,7 +229,9 @@ class MercadoPointService {
     return {
       success: true,
       device: activatedDevice,
-      message: 'Terminal ativado e pronto para receber pagamentos'
+      message: isTestCredentials 
+        ? 'Terminal ativado com credenciais de teste - pronto para simulações de pagamento'
+        : 'Terminal ativado e pronto para receber pagamentos'
     }
   }
 
@@ -212,8 +263,10 @@ class MercadoPointService {
       throw new Error(`Dispositivo está ${device.status}. Verifique a conexão.`)
     }
 
+    const isTestCredentials = credentials.accessToken === 'TEST-4609463972345650-062820-a3890b88de18581dbd61a186771c41b5-407806063'
+
     const paymentIntent: PointPaymentIntent = {
-      id: `pi_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `pi_test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       amount: request.amount,
       description: request.description,
       status: 'pending',
@@ -226,14 +279,15 @@ class MercadoPointService {
     // Salvar no mock
     this.mockPaymentIntents.set(paymentIntent.id, paymentIntent)
 
-    console.log('Mock: Intenção de pagamento criada:', {
+    console.log('💳 Mock: Intenção de pagamento criada:', {
       id: paymentIntent.id,
       amount: paymentIntent.amount,
-      device: request.deviceId
+      device: request.deviceId,
+      testMode: isTestCredentials
     })
 
     // Simular envio para o terminal
-    this.simulateTerminalPayment(paymentIntent.id)
+    this.simulateTerminalPayment(paymentIntent.id, isTestCredentials)
 
     return paymentIntent
   }
@@ -269,7 +323,7 @@ class MercadoPointService {
     
     this.mockPaymentIntents.set(paymentIntentId, paymentIntent)
 
-    console.log('Mock: Pagamento cancelado:', paymentIntentId)
+    console.log('❌ Mock: Pagamento cancelado:', paymentIntentId)
 
     return true
   }
@@ -278,7 +332,7 @@ class MercadoPointService {
   // SIMULATION HELPERS
   // ==========================================
 
-  private async simulateTerminalPayment(paymentIntentId: string): Promise<void> {
+  private async simulateTerminalPayment(paymentIntentId: string, isTestCredentials: boolean = false): Promise<void> {
     // Simular processamento no terminal
     setTimeout(async () => {
       const paymentIntent = this.mockPaymentIntents.get(paymentIntentId)
@@ -292,10 +346,15 @@ class MercadoPointService {
       paymentIntent.updated_at = new Date().toISOString()
       this.mockPaymentIntents.set(paymentIntentId, paymentIntent)
 
-      console.log('Mock: Terminal processando pagamento...')
+      console.log('⏳ Mock: Terminal processando pagamento...', {
+        id: paymentIntentId,
+        testMode: isTestCredentials
+      })
 
-      // Simular tempo de processamento (5-15 segundos)
-      const processingTime = 5000 + Math.random() * 10000
+      // Simular tempo de processamento (mais rápido com credenciais de teste)
+      const processingTime = isTestCredentials 
+        ? 3000 + Math.random() * 5000  // 3-8 segundos para teste
+        : 5000 + Math.random() * 10000 // 5-15 segundos normal
       
       setTimeout(() => {
         const finalPaymentIntent = this.mockPaymentIntents.get(paymentIntentId)
@@ -304,15 +363,20 @@ class MercadoPointService {
           return
         }
 
-        // Simular resultado (90% aprovado, 10% rejeitado)
-        const isApproved = Math.random() > 0.1
+        // Com credenciais de teste, simular maior taxa de aprovação
+        const approvalRate = isTestCredentials ? 0.95 : 0.9 // 95% vs 90%
+        const isApproved = Math.random() < approvalRate
 
         finalPaymentIntent.status = isApproved ? 'approved' : 'rejected'
         finalPaymentIntent.updated_at = new Date().toISOString()
         
         this.mockPaymentIntents.set(paymentIntentId, finalPaymentIntent)
 
-        console.log(`Mock: Pagamento ${isApproved ? 'aprovado' : 'rejeitado'}:`, paymentIntentId)
+        console.log(`${isApproved ? '✅' : '❌'} Mock: Pagamento ${isApproved ? 'aprovado' : 'rejeitado'}:`, {
+          id: paymentIntentId,
+          testMode: isTestCredentials,
+          amount: finalPaymentIntent.amount
+        })
       }, processingTime)
     }, 2000) // 2 segundos para começar o processamento
   }
@@ -334,7 +398,7 @@ class MercadoPointService {
       throw new Error('Dispositivo não encontrado')
     }
 
-    console.log('Mock: Configurando dispositivo:', {
+    console.log('⚙️ Mock: Configurando dispositivo:', {
       deviceId,
       config
     })
@@ -366,9 +430,17 @@ class MercadoPointService {
       }
     }
 
-    // Simular teste de conexão
-    const latency = 50 + Math.random() * 200 // 50-250ms
-    const success = Math.random() > 0.05 // 95% de sucesso
+    const credentials = await mercadoPagoCredentialsService.getPointCredentials()
+    const isTestCredentials = credentials?.accessToken === 'TEST-4609463972345650-062820-a3890b88de18581dbd61a186771c41b5-407806063'
+
+    // Simular teste de conexão (melhor performance com credenciais de teste)
+    const latency = isTestCredentials 
+      ? 30 + Math.random() * 100  // 30-130ms para teste
+      : 50 + Math.random() * 200  // 50-250ms normal
+    
+    const success = isTestCredentials 
+      ? Math.random() > 0.02  // 98% de sucesso para teste
+      : Math.random() > 0.05  // 95% de sucesso normal
 
     if (!success) {
       return {
@@ -381,11 +453,16 @@ class MercadoPointService {
     // Atualizar status do dispositivo
     device.status = 'online'
     device.last_seen = new Date().toISOString()
+    if (isTestCredentials && !device.name.includes('(Teste)')) {
+      device.name = device.name + ' (Teste)'
+    }
 
     return {
       success: true,
       latency: Math.round(latency),
-      message: `Conexão estabelecida com sucesso (${Math.round(latency)}ms)`
+      message: isTestCredentials
+        ? `Conexão de teste estabelecida com sucesso (${Math.round(latency)}ms)`
+        : `Conexão estabelecida com sucesso (${Math.round(latency)}ms)`
     }
   }
 
@@ -408,16 +485,23 @@ class MercadoPointService {
       throw new Error('Dispositivo não encontrado')
     }
 
-    // Simular dados de saúde
+    const credentials = await mercadoPagoCredentialsService.getPointCredentials()
+    const isTestCredentials = credentials?.accessToken === 'TEST-4609463972345650-062820-a3890b88de18581dbd61a186771c41b5-407806063'
+
+    // Simular dados de saúde (melhores com credenciais de teste)
     const battery = device.battery_level || Math.floor(Math.random() * 100)
     const temperature = 25 + Math.random() * 15 // 25-40°C
     
     let connectivity: 'excellent' | 'good' | 'poor' | 'offline' = 'offline'
     if (device.status === 'online') {
-      const signal = Math.random()
-      if (signal > 0.8) connectivity = 'excellent'
-      else if (signal > 0.6) connectivity = 'good'
-      else connectivity = 'poor'
+      const signal = isTestCredentials 
+        ? 0.8 + Math.random() * 0.2  // 80-100% para teste
+        : Math.random()              // 0-100% normal
+      
+      if (signal > 0.9) connectivity = 'excellent'
+      else if (signal > 0.7) connectivity = 'good'
+      else if (signal > 0.4) connectivity = 'poor'
+      else connectivity = 'offline'
     }
 
     const uptime = Math.floor(Math.random() * 86400) // 0-24 horas em segundos

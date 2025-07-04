@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Save, TestTube, CheckCircle, XCircle, Eye, EyeOff, Wifi, WifiOff, Power, PowerOff, AlertTriangle } from 'lucide-react'
+import { Save, TestTube, CheckCircle, XCircle, Eye, EyeOff, Wifi, WifiOff, Power, PowerOff, AlertTriangle, Copy } from 'lucide-react'
 import { mercadoPagoCredentialsService } from '../../services/mercadoPagoCredentialsService'
 import { MercadoPagoConfig, ConnectionTestResult, IntegrationStatus } from '../../types'
 
@@ -127,6 +127,24 @@ export const MercadoPagoSettings: React.FC = () => {
     setShowTokens(prev => ({ ...prev, [token]: !prev[token] }))
   }
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      // Mostrar feedback visual
+      const notification = document.createElement('div')
+      notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50'
+      notification.textContent = 'Copiado para a área de transferência!'
+      document.body.appendChild(notification)
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification)
+        }
+      }, 2000)
+    } catch (err) {
+      console.error('Erro ao copiar:', err)
+    }
+  }
+
   const formatLastTested = (dateString?: string) => {
     if (!dateString) return 'Nunca testado'
     return new Date(dateString).toLocaleString('pt-BR')
@@ -173,6 +191,53 @@ export const MercadoPagoSettings: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Credenciais de Teste Fornecidas */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-blue-800 mb-4">🧪 Credenciais de Teste Configuradas</h3>
+        <div className="space-y-3 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white p-4 rounded-lg border">
+              <h4 className="font-medium text-blue-800 mb-2">Point Terminal (Cartões)</h4>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Public Key:</span>
+                  <div className="flex items-center space-x-2">
+                    <code className="bg-gray-100 px-2 py-1 rounded">TEST-49bde85c-cdd5-477e-ab49-a16475aefa3f</code>
+                    <button
+                      onClick={() => copyToClipboard('TEST-49bde85c-cdd5-477e-ab49-a16475aefa3f')}
+                      className="p-1 hover:bg-gray-200 rounded"
+                    >
+                      <Copy className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Access Token:</span>
+                  <div className="flex items-center space-x-2">
+                    <code className="bg-gray-100 px-2 py-1 rounded text-xs">TEST-4609463972345650-062820-a3890b88de18581dbd61a186771c41b5-407806063</code>
+                    <button
+                      onClick={() => copyToClipboard('TEST-4609463972345650-062820-a3890b88de18581dbd61a186771c41b5-407806063')}
+                      className="p-1 hover:bg-gray-200 rounded"
+                    >
+                      <Copy className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <h4 className="font-medium text-green-800 mb-2">✅ Status</h4>
+              <ul className="text-xs text-green-700 space-y-1">
+                <li>• Credenciais de teste válidas</li>
+                <li>• Ambiente: Sandbox</li>
+                <li>• Simulação de pagamentos ativa</li>
+                <li>• Taxa de aprovação: 95%</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Status Overview */}
       <div className="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-xl p-6">
@@ -652,26 +717,26 @@ export const MercadoPagoSettings: React.FC = () => {
 
       {/* Instruções */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-blue-800 mb-4">Como obter as credenciais</h3>
+        <h3 className="text-lg font-semibold text-blue-800 mb-4">Fluxo de Teste Configurado</h3>
         
         <div className="space-y-4 text-sm text-blue-700">
           <div>
-            <h4 className="font-medium">Checkout Transparente (PIX):</h4>
-            <ol className="list-decimal list-inside mt-2 space-y-1">
-              <li>Acesse o <a href="https://www.mercadopago.com.br/developers/panel" target="_blank" rel="noopener noreferrer" className="underline">Painel do Desenvolvedor</a></li>
-              <li>Crie uma aplicação</li>
-              <li>Obtenha Access Token e Public Key</li>
-              <li>Configure as credenciais e ative a integração</li>
-            </ol>
+            <h4 className="font-medium">✅ Credenciais Point Configuradas:</h4>
+            <ul className="list-disc list-inside mt-2 space-y-1 ml-4">
+              <li>Access Token de teste válido</li>
+              <li>Ambiente sandbox ativo</li>
+              <li>Simulação de terminais Point disponível</li>
+              <li>Taxa de aprovação: 95% (modo teste)</li>
+            </ul>
           </div>
           
           <div>
-            <h4 className="font-medium">Point Terminal (Cartões):</h4>
-            <ol className="list-decimal list-inside mt-2 space-y-1">
-              <li>Configure o terminal Point fisicamente</li>
-              <li>Vincule o terminal à sua conta no painel Point</li>
-              <li>Obtenha Device ID e credenciais específicas</li>
-              <li>Configure as credenciais e ative a integração</li>
+            <h4 className="font-medium">🧪 Como testar:</h4>
+            <ol className="list-decimal list-inside mt-2 space-y-1 ml-4">
+              <li>Ative a integração Point clicando em "Ativar"</li>
+              <li>Teste a conexão com o botão "Testar"</li>
+              <li>Vá para "Point Devices" para gerenciar terminais</li>
+              <li>No PDV, escolha pagamento com cartão para testar</li>
             </ol>
           </div>
         </div>
