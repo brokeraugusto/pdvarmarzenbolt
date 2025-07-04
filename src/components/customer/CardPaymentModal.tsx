@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { X, CreditCard, CheckCircle, XCircle, Loader, AlertTriangle } from 'lucide-react'
+import { X, CreditCard, CheckCircle, XCircle, Loader, AlertTriangle, Smartphone } from 'lucide-react'
 import { mercadoPagoService } from '../../services/mercadoPagoService'
+import { mercadoPointService } from '../../services/mercadoPointService'
 import { orderService } from '../../services/orderService'
 import { useStore } from '../../store/useStore'
 
@@ -20,10 +21,12 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
   paymentType
 }) => {
   const [paymentIntentId, setPaymentIntentId] = useState<string>('')
-  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'approved' | 'rejected'>('pending')
+  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'processing' | 'approved' | 'rejected'>('pending')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>('')
   const [processingStep, setProcessingStep] = useState<string>('')
+  const [selectedDevice, setSelectedDevice] = useState<string>('')
+  const [availableDevices, setAvailableDevices] = useState<any[]>([])
 
   const { customer, clearCart, setShowCheckout, setShowPaymentModal } = useStore()
 
@@ -35,7 +38,6 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
   }
 
   const showSuccessNotification = (message: string) => {
-    // Criar notificação customizada
     const notification = document.createElement('div')
     notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg z-[9999] flex items-center space-x-2'
     notification.innerHTML = `
@@ -47,7 +49,6 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
     
     document.body.appendChild(notification)
     
-    // Remover após 5 segundos
     setTimeout(() => {
       if (notification.parentNode) {
         notification.parentNode.removeChild(notification)
@@ -55,7 +56,27 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
     }, 5000)
   }
 
+  const loadAvailableDevices = async () => {
+    try {
+      const devices = await mercadoPointService.getAvailableDevices()
+      const onlineDevices = devices.filter(device => device.status === 'online')
+      setAvailableDevices(onlineDevices)
+      
+      if (onlineDevices.length > 0) {
+        setSelectedDevice(onlineDevices[0].id)
+      }
+    } catch (err) {
+      console.error('Error loading devices:', err)
+      setError('Erro ao carregar dispositivos Point. Verifique a configuração.')
+    }
+  }
+
   const createCardPayment = async () => {
+    if (!selectedDevice) {
+      setError('Nenhum dispositivo Point disponível. Verifique se há terminais online.')
+      return
+    }
+
     setLoading(true)
     setError('')
     setProcessingStep('Conectando com o terminal...')
@@ -64,14 +85,15 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
       const paymentRequest = {
         amount,
         description: `Compra Mercadinho - Pedido ${orderId}`,
-        orderId,
-        paymentType
+        deviceId: selectedDevice,
+        externalReference: orderId
       }
 
       setProcessingStep('Criando intenção de pagamento...')
-      const paymentIntent = await mercadoPagoService.createPointPayment(paymentRequest)
+      const paymentIntent = await mercadoPointService.createPaymentIntent(paymentRequest)
       
       setPaymentIntentId(paymentIntent.id)
+      setPaymentStatus('pending')
       setProcessingStep('Aguardando pagamento no terminal...')
       
       // Start polling for payment status
@@ -99,7 +121,16 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
         attempts++
         setProcessingStep(`Verificando pagamento... (${attempts}/${maxAttempts})`)
         
-        const payment = await mercadoPagoService.getPointPaymentStatus(paymentIntentId)
+        const payment = await mercadoPointService.getPaymentIntentStatus(paymentIntentId)
+        
+        if (!payment) {
+          throw new Error('Pagamento não encontrado')
+        }
+
+        if (payment.status === 'processing' && paymentStatus !== 'processing') {
+          setPaymentStatus('processing')
+          setProcessingStep('Terminal processando pagamento...')
+        }
         
         if (payment.status === 'approved' || payment.status === 'rejected') {
           setPaymentStatus(payment.status)
@@ -155,6 +186,11 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
   }
 
   const handleClose = () => {
+    // Cancel payment if still pending
+    if (paymentIntentId && (paymentStatus === 'pending' || paymentStatus === 'processing')) {
+      mercadoPointService.cancelPaymentIntent(paymentIntentId).catch(console.error)
+    }
+    
     setError('')
     setPaymentIntentId('')
     setPaymentStatus('pending')
@@ -163,12 +199,19 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
     onClose()
   }
 
-  // Initialize payment when modal opens
+  // Initialize devices and payment when modal opens
   useEffect(() => {
     if (isOpen && !paymentIntentId && !loading && !error) {
-      createCardPayment()
+      loadAvailableDevices().then(() => {
+        // Auto-start payment if devices are available
+        setTimeout(() => {
+          if (availableDevices.length > 0) {
+            createCardPayment()
+          }
+        }, 1000)
+      })
     }
-  }, [isOpen])
+  }, [isOpen, availableDevices.length])
 
   // Reset state when modal closes
   useEffect(() => {
@@ -178,6 +221,8 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
       setPaymentStatus('pending')
       setProcessingStep('')
       setLoading(false)
+      setAvailableDevices([])
+      setSelectedDevice('')
     }
   }, [isOpen])
 
@@ -215,6 +260,27 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
         </div>
 
         <div className="p-6 max-h-[60vh] overflow-y-auto">
+          {/* Device Selection */}
+          {availableDevices.length > 0 && !loading && !error && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Terminal Point:
+              </label>
+              <select
+                value={selectedDevice}
+                onChange={(e) => setSelectedDevice(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={loading}
+              >
+                {availableDevices.map((device) => (
+                  <option key={device.id} value={device.id}>
+                    {device.name} ({mercadoPointService.getDeviceStatusLabel(device.status)})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {loading && !error && (
             <div className="text-center py-8">
               <div className="flex items-center justify-center mb-4">
@@ -222,6 +288,16 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
               </div>
               <p className="text-gray-800 font-medium mb-2">Processando pagamento...</p>
               <p className="text-gray-600 text-sm">{processingStep}</p>
+              
+              {/* Progress indicator */}
+              <div className="mt-4 w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className={`bg-blue-600 h-2 rounded-full transition-all duration-1000 ${
+                    paymentStatus === 'pending' ? 'w-1/4' :
+                    paymentStatus === 'processing' ? 'w-3/4' : 'w-full'
+                  }`}
+                ></div>
+              </div>
             </div>
           )}
 
@@ -233,17 +309,17 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
               </div>
               <p className="text-red-600 text-sm mt-1">{error}</p>
               
-              {error.includes('credenciais') || error.includes('conexão') || error.includes('configuradas') || error.includes('Device ID') ? (
+              {error.includes('credenciais') || error.includes('conexão') || error.includes('configuradas') || error.includes('Device ID') || error.includes('dispositivos Point') ? (
                 <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <div className="flex items-start space-x-2">
                     <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                     <div className="text-sm">
                       <p className="text-yellow-800 font-medium">Configuração necessária:</p>
                       <p className="text-yellow-700 mt-1">
-                        Configure suas credenciais do Mercado Pago Point e Device ID no painel administrativo para usar pagamentos com cartão.
+                        Configure suas credenciais do Mercado Pago Point e ative os dispositivos no painel administrativo.
                       </p>
                       <p className="text-yellow-600 text-xs mt-2">
-                        Acesse /admin → Configurações → Mercado Pago para configurar as credenciais.
+                        Acesse /admin → Configurações → Point Devices para gerenciar os terminais.
                       </p>
                     </div>
                   </div>
@@ -269,13 +345,14 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
             </div>
           )}
 
+          {/* Instructions */}
           {loading && !error && (
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
               <h3 className="font-medium text-blue-800 mb-3">Instruções:</h3>
               <ol className="text-sm text-blue-700 space-y-2">
                 <li className="flex items-start space-x-2">
                   <span className="bg-blue-200 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mt-0.5">1</span>
-                  <span>Insira ou aproxime seu cartão no terminal</span>
+                  <span>Insira ou aproxime seu cartão no terminal Point</span>
                 </li>
                 <li className="flex items-start space-x-2">
                   <span className="bg-blue-200 text-blue-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mt-0.5">2</span>
@@ -286,6 +363,34 @@ export const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
                   <span>Aguarde a confirmação do pagamento</span>
                 </li>
               </ol>
+              
+              {selectedDevice && (
+                <div className="mt-3 p-2 bg-blue-100 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Smartphone className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm text-blue-700">
+                      Terminal: {availableDevices.find(d => d.id === selectedDevice)?.name}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* No devices available */}
+          {availableDevices.length === 0 && !loading && !error && (
+            <div className="text-center py-8">
+              <Smartphone className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum terminal disponível</h3>
+              <p className="text-gray-600 mb-4">
+                Não há terminais Point online no momento.
+              </p>
+              <button
+                onClick={loadAvailableDevices}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Verificar novamente
+              </button>
             </div>
           )}
 

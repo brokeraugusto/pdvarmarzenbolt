@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { Save, CreditCard, Percent, Store, Key, Upload, Database } from 'lucide-react'
+import { Save, CreditCard, Percent, Store, Key, Upload, Database, Smartphone } from 'lucide-react'
 import { MercadoPagoSettings } from './MercadoPagoSettings'
 import { ImageUpload } from './ImageUpload'
 import { DatabaseStatus } from './DatabaseStatus'
+import { PointDeviceManager } from './PointDeviceManager'
 import { settingsService } from '../../services/settingsService'
 import { PaymentFees } from '../../types'
 
-type SettingsTab = 'general' | 'database' | 'mercadopago' | 'fees' | 'discounts'
+type SettingsTab = 'general' | 'database' | 'mercadopago' | 'point' | 'fees' | 'discounts'
 
 export const SettingsManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('database')
@@ -142,12 +143,13 @@ export const SettingsManager: React.FC = () => {
     { id: 'database' as const, label: 'Banco de Dados', icon: Database },
     { id: 'general' as const, label: 'Geral', icon: Store },
     { id: 'mercadopago' as const, label: 'Mercado Pago', icon: Key },
+    { id: 'point' as const, label: 'Point Devices', icon: Smartphone },
     { id: 'fees' as const, label: 'Taxas', icon: CreditCard },
     { id: 'discounts' as const, label: 'Descontos', icon: Percent }
   ]
 
   const renderContent = () => {
-    if (loading && activeTab !== 'database') {
+    if (loading && activeTab !== 'database' && activeTab !== 'point') {
       return (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -161,6 +163,9 @@ export const SettingsManager: React.FC = () => {
         
       case 'mercadopago':
         return <MercadoPagoSettings />
+
+      case 'point':
+        return <PointDeviceManager />
       
       case 'general':
         return (
