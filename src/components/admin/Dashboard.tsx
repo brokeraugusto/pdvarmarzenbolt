@@ -8,13 +8,16 @@ import {
   TrendingDown,
   Receipt,
   Calculator,
-  PieChart
+  PieChart,
+  Clock,
+  User,
+  CreditCard
 } from 'lucide-react'
 import { orderService } from '../../services/orderService'
 import { productService } from '../../services/productService'
 import { expenseService } from '../../services/expenseService'
 import { cashFlowService } from '../../services/cashFlowService'
-import { CashFlowData } from '../../types'
+import { CashFlowData, Order } from '../../types'
 
 interface DashboardStats {
   totalSales: number
@@ -42,10 +45,19 @@ export const Dashboard: React.FC = () => {
   })
   const [cashFlow, setCashFlow] = useState<CashFlowData | null>(null)
   const [topProducts, setTopProducts] = useState<any[]>([])
+  const [recentOrders, setRecentOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
 
   useEffect(() => {
     loadDashboardData()
+    
+    // Auto-refresh a cada 30 segundos
+    const interval = setInterval(() => {
+      refreshRecentData()
+    }, 30000)
+    
+    return () => clearInterval(interval)
   }, [])
 
   const loadDashboardData = async () => {
@@ -63,7 +75,8 @@ export const Dashboard: React.FC = () => {
         averageMargin,
         totalExpenses,
         monthlyComparison,
-        topProductsData
+        topProductsData,
+        allOrders
       ] = await Promise.all([
         orderService.getTotalSales(),
         orderService.getOrdersCount(),
@@ -72,7 +85,8 @@ export const Dashboard: React.FC = () => {
         productService.getAverageMargin(),
         expenseService.getTotalExpenses(startOfMonth, endOfMonth),
         cashFlowService.getMonthlyComparison(),
-        cashFlowService.getTopSellingProducts(5)
+        cashFlowService.getTopSellingProducts(5),
+        orderService.getAllOrders()
       ])
 
       const netProfit = monthlyComparison.current.net_profit
@@ -91,10 +105,26 @@ export const Dashboard: React.FC = () => {
 
       setCashFlow(monthlyComparison.current)
       setTopProducts(topProductsData)
+      
+      // Pegar os 5 pedidos mais recentes
+      setRecentOrders(allOrders.slice(0, 5))
+      
     } catch (error) {
       console.error('Error loading dashboard data:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const refreshRecentData = async () => {
+    setRefreshing(true)
+    try {
+      const allOrders = await orderService.getAllOrders()
+      setRecentOrders(allOrders.slice(0, 5))
+    } catch (error) {
+      console.error('Error refreshing recent data:', error)
+    } finally {
+      setRefreshing(false)
     }
   }
 
@@ -105,6 +135,64 @@ export const Dashboard: React.FC = () => {
     }).format(value)
   }
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    
+    if (diffMins < 1) return 'Agora'
+    if (diffMins < 60) return `${diffMins}min atrás`
+    
+    const diffHours = Math.floor(diffMins / 60)
+    if (diffHours < 24) return `${diffHours}h atrás`
+    
+    const diffDays = Math.floor(diffHours / 24)
+    if (diffDays === 1) return 'Ontem'
+    if (diffDays < 7) return `${diffDays} dias atrás`
+    
+    return date.toLocaleDateString('pt-BR')
+  }
+
+  const getPaymentMethodIcon = (method: string) => {
+    switch (method) {
+      case 'pix':
+        return '💳'
+      case 'credit':
+        return '💳'
+      case 'debit':
+        return '💳'
+      default:
+        return '💰'
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return 'text-green-600 bg-green-100'
+      case 'pending':
+        return 'text-yellow-600 bg-yellow-100'
+      case 'rejected':
+        return 'text-red-600 bg-red-100'
+      default:
+        return 'text-gray-600 bg-gray-100'
+    }
+  }
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return 'Aprovado'
+      case 'pending':
+        return 'Pendente'
+      case 'rejected':
+        return 'Rejeitado'
+      default:
+        return status
+    }
+  }
+
   const StatCard: React.FC<{
     title: string
     value: string | number
@@ -113,7 +201,7 @@ export const Dashboard: React.FC = () => {
     color: string
     subtitle?: string
   }> = ({ title, value, icon, growth, color, subtitle }) => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-600">{title}</p>
@@ -154,9 +242,19 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Visão geral do sistema</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600 mt-1">Visão geral do sistema</p>
+        </div>
+        <button
+          onClick={refreshRecentData}
+          disabled={refreshing}
+          className="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50"
+        >
+          <Clock className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          <span>{refreshing ? 'Atualizando...' : 'Atualizar'}</span>
+        </button>
       </div>
 
       {/* Main Stats Grid */}
@@ -254,43 +352,108 @@ export const Dashboard: React.FC = () => {
 
       {/* Recent Activity and Top Products */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Vendas Recentes - DADOS REAIS */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Vendas Recentes</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Vendas Recentes</h3>
+            <div className="flex items-center space-x-2">
+              {refreshing && (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              )}
+              <span className="text-xs text-gray-500">Atualização automática</span>
+            </div>
+          </div>
+          
           <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                <div>
-                  <p className="font-medium text-gray-900">Pedido #{1000 + i}</p>
-                  <p className="text-sm text-gray-500">Há {i} hora{i > 1 ? 's' : ''}</p>
-                </div>
-                <span className="font-semibold text-green-600">
-                  {formatCurrency(25.50 * i)}
-                </span>
+            {recentOrders.length === 0 ? (
+              <div className="text-center py-8">
+                <ShoppingCart className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500 text-sm">Nenhuma venda recente</p>
               </div>
-            ))}
+            ) : (
+              recentOrders.map((order) => (
+                <div key={order.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 rounded-lg px-2 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-2 rounded-lg ${getStatusColor(order.payment_status)}`}>
+                      <span className="text-lg">{getPaymentMethodIcon(order.payment_method)}</span>
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <p className="font-medium text-gray-900">#{order.id.slice(-8)}</p>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.payment_status)}`}>
+                          {getStatusLabel(order.payment_status)}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm text-gray-500">
+                        {order.customer ? (
+                          <div className="flex items-center space-x-1">
+                            <User className="h-3 w-3" />
+                            <span>{order.customer.name}</span>
+                          </div>
+                        ) : (
+                          <span>Cliente não identificado</span>
+                        )}
+                        <span>•</span>
+                        <span>{formatDate(order.created_at)}</span>
+                      </div>
+                      <p className="text-xs text-gray-400">
+                        {order.items.length} item{order.items.length > 1 ? 's' : ''}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-gray-900">
+                      {formatCurrency(order.total)}
+                    </p>
+                    {order.discount > 0 && (
+                      <p className="text-xs text-green-600">
+                        -{formatCurrency(order.discount)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
+        {/* Produtos Mais Vendidos */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Produtos Mais Vendidos</h3>
           <div className="space-y-4">
-            {topProducts.slice(0, 3).map((item, index) => (
-              <div key={item.product.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                <div className="flex items-center space-x-3">
-                  <span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
-                    {index + 1}
-                  </span>
-                  <div>
-                    <p className="font-medium text-gray-900">{item.product.name}</p>
-                    <p className="text-sm text-gray-500">{item.quantity_sold} vendidos</p>
+            {topProducts.length === 0 ? (
+              <div className="text-center py-8">
+                <Package className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500 text-sm">Nenhum produto vendido ainda</p>
+              </div>
+            ) : (
+              topProducts.slice(0, 5).map((item, index) => (
+                <div key={item.product.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                  <div className="flex items-center space-x-3">
+                    <span className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                      {index + 1}
+                    </span>
+                    <div className="flex items-center space-x-3">
+                      {item.product.image && (
+                        <img
+                          src={item.product.image}
+                          alt={item.product.name}
+                          className="w-8 h-8 rounded-lg object-cover"
+                        />
+                      )}
+                      <div>
+                        <p className="font-medium text-gray-900 text-sm">{item.product.name}</p>
+                        <p className="text-xs text-gray-500">{item.quantity_sold} vendidos</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-green-600 text-sm">{formatCurrency(item.revenue)}</p>
+                    <p className="text-xs text-gray-500">Lucro: {formatCurrency(item.profit)}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold text-green-600">{formatCurrency(item.revenue)}</p>
-                  <p className="text-sm text-gray-500">Lucro: {formatCurrency(item.profit)}</p>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
