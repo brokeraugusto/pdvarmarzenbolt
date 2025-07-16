@@ -11,7 +11,8 @@ import {
   PieChart,
   Clock,
   User,
-  CreditCard
+  CreditCard,
+  AlertTriangle
 } from 'lucide-react'
 import { orderService } from '../../services/orderService'
 import { productService } from '../../services/productService'
@@ -61,6 +62,7 @@ export const Dashboard: React.FC = () => {
   }, [])
 
   const loadDashboardData = async () => {
+    setLoading(true)
     try {
       // Get current month dates
       const now = new Date()
@@ -109,12 +111,26 @@ export const Dashboard: React.FC = () => {
       // Pegar os 5 pedidos mais recentes
       setRecentOrders(allOrders.slice(0, 5))
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading dashboard data:', error)
+      
+      // Mostrar erro específico para o usuário
+      const errorMessage = error?.message || 'Erro desconhecido ao carregar dados'
+      
+      // Se for erro de conexão com Supabase, mostrar mensagem específica
+      if (errorMessage.includes('Supabase não está configurado')) {
+        setError('Banco de dados não configurado. Acesse Configurações → Banco de Dados para configurar.')
+      } else if (errorMessage.includes('Failed to fetch')) {
+        setError('Erro de conexão com o banco de dados. Verifique sua conexão e configurações do Supabase.')
+      } else {
+        setError(errorMessage)
+      }
     } finally {
       setLoading(false)
     }
   }
+
+  const [error, setError] = useState<string>('')
 
   const refreshRecentData = async () => {
     setRefreshing(true)
@@ -236,6 +252,42 @@ export const Dashboard: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <p className="ml-4 text-gray-600">Carregando dados do dashboard...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="p-2 bg-red-100 rounded-lg">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-red-800">Erro ao Carregar Dashboard</h3>
+              <p className="text-red-600 text-sm mt-1">{error}</p>
+            </div>
+          </div>
+          <div className="flex space-x-4">
+            <button
+              onClick={() => {
+                setError('')
+                loadDashboardData()
+              }}
+              className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+            >
+              Tentar Novamente
+            </button>
+            <button
+              onClick={() => window.location.href = '/admin#settings'}
+              className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+            >
+              Ir para Configurações
+            </button>
+          </div>
+        </div>
       </div>
     )
   }

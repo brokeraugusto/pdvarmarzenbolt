@@ -49,6 +49,7 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
+    setError('')
 
     try {
       if (category) {
@@ -58,13 +59,16 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
       }
       onSave()
       onClose()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving category:', error)
-      alert('Erro ao salvar categoria')
+      const errorMessage = error?.message || 'Erro desconhecido ao salvar categoria'
+      setError(errorMessage)
     } finally {
       setSaving(false)
     }
   }
+
+  const [error, setError] = useState('')
 
   if (!isOpen) return null
 
@@ -141,6 +145,16 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
               </div>
             </div>
           </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+              <div className="flex items-center space-x-2">
+                <X className="h-5 w-5 text-red-500" />
+                <p className="text-red-700 font-medium">Erro</p>
+              </div>
+              <p className="text-red-600 text-sm mt-1">{error}</p>
+            </div>
+          )}
 
           <div className="flex space-x-4 mt-6">
             <button
