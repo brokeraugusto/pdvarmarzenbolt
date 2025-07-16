@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { Order, CartItem, User } from '../types'
+import { isSupabaseConfigured } from '../lib/supabase'
 
 interface CreateOrderRequest {
   items: CartItem[]
@@ -11,7 +12,29 @@ interface CreateOrderRequest {
 }
 
 class OrderService {
+  private async checkConnection(): Promise<void> {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase não está configurado. Verifique as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no arquivo .env')
+    }
+
+    try {
+      const { error } = await supabase.from('orders').select('count', { count: 'exact', head: true }).limit(1)
+      if (error) {
+        console.error('Supabase connection test failed:', error)
+        throw new Error(`Erro de conexão com o banco de dados: ${error.message}`)
+      }
+    } catch (error: any) {
+      if (error.message.includes('Supabase não está configurado')) {
+        throw error
+      }
+      console.error('Database connection error:', error)
+      throw new Error('Não foi possível conectar ao banco de dados. Verifique sua conexão e configurações.')
+    }
+  }
+
   async createOrder(request: CreateOrderRequest): Promise<Order> {
+    await this.checkConnection()
+
     // Criar o pedido
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
@@ -81,6 +104,8 @@ class OrderService {
   }
 
   async updateOrderPaymentStatus(orderId: string, status: 'pending' | 'approved' | 'rejected', mpPaymentId?: string): Promise<Order | null> {
+    await this.checkConnection()
+
     const updateData: any = { payment_status: status }
     if (mpPaymentId) {
       updateData.mp_payment_id = mpPaymentId
@@ -126,6 +151,8 @@ class OrderService {
   }
 
   async getOrderById(orderId: string): Promise<Order | null> {
+    await this.checkConnection()
+
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .select('*')
@@ -202,6 +229,8 @@ class OrderService {
   }
 
   async getAllOrders(): Promise<Order[]> {
+    await this.checkConnection()
+
     const { data: ordersData, error } = await supabase
       .from('orders')
       .select('*')
@@ -282,6 +311,8 @@ class OrderService {
   }
 
   async getOrdersByDateRange(startDate: string, endDate: string): Promise<Order[]> {
+    await this.checkConnection()
+
     const { data: ordersData, error } = await supabase
       .from('orders')
       .select('*')
@@ -329,6 +360,8 @@ class OrderService {
 
   // Analytics methods
   async getTotalSales(startDate?: string, endDate?: string): Promise<number> {
+    await this.checkConnection()
+
     let query = supabase
       .from('orders')
       .select('total')
@@ -348,6 +381,8 @@ class OrderService {
   }
 
   async getOrdersCount(status?: 'pending' | 'approved' | 'rejected'): Promise<number> {
+    await this.checkConnection()
+
     let query = supabase
       .from('orders')
       .select('*', { count: 'exact', head: true })
@@ -365,6 +400,8 @@ class OrderService {
   }
 
   async getAverageTicket(): Promise<number> {
+    await this.checkConnection()
+
     const { data, error } = await supabase
       .from('orders')
       .select('total')
