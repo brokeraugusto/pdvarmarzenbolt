@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { Order, CartItem, User } from '../types'
-import { isSupabaseConfigured } from '../lib/supabase'
+import { isConfigured as isSupabaseConfigured } from '../lib/supabase'
 
 interface CreateOrderRequest {
   items: CartItem[]
