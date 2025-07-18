@@ -156,8 +156,8 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 ## 📞 Suporte
 
 Para dúvidas ou suporte:
-- Email: suporte@mercadinho.com
-- WhatsApp: (11) 99999-9999
+- Email: suporte@o2digital.com.br
+- WhatsApp: (48) 99904-3764
 
 ---
 
