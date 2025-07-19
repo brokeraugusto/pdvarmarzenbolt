@@ -435,6 +435,7 @@ export const SettingsManager: React.FC = () => {
           <p className="text-gray-600 mt-1">Gerencie as configurações do sistema</p>
         </div>
         {(activeTab === 'general' || activeTab === 'fees' || activeTab === 'discounts') && (
+        {(activeTab === 'general' || activeTab === 'fees' || activeTab === 'discounts' || activeTab === 'payment-methods') && (
           <button
             onClick={handleSave}
             disabled={saving}

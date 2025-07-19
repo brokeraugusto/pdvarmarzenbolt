@@ -207,7 +207,7 @@ export const PaymentModal: React.FC = () => {
                     }`}>
                       {isMethodAvailable('pix') 
                         ? 'Pagamento instantâneo via QR Code'
-                        : 'Não disponível - Configure no admin'
+                        : 'Não disponível - Desabilitado pelo administrador'
                       }
                     </p>
                   </div>
@@ -247,7 +247,7 @@ export const PaymentModal: React.FC = () => {
                     }`}>
                       {isMethodAvailable('credit') 
                         ? 'Via terminal Mercado Point'
-                        : 'Não disponível - Configure no admin'
+                        : 'Não disponível - Desabilitado pelo administrador'
                       }
                     </p>
                   </div>
@@ -287,7 +287,7 @@ export const PaymentModal: React.FC = () => {
                     }`}>
                       {isMethodAvailable('debit') 
                         ? 'Via terminal Mercado Point'
-                        : 'Não disponível - Configure no admin'
+                        : 'Não disponível - Desabilitado pelo administrador'
                       }
                     </p>
                   </div>
