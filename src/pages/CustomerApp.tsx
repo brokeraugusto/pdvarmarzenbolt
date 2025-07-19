@@ -14,10 +14,10 @@ export const CustomerApp: React.FC = () => {
   }, [loadProducts])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700">
+    <div className="min-h-screen gradient-primary safe-area">
       <Header />
       
-      <div className="flex h-[calc(100vh-88px)]">
+      <div className="flex h-[calc(100vh-80px)] sm:h-[calc(100vh-88px)]">
         <CategorySidebar />
         <ProductGrid />
       </div>

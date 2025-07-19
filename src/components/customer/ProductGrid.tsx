@@ -55,13 +55,13 @@ export const ProductGrid: React.FC = () => {
 
   if (products.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="text-center text-white/60">
-          <div className="w-24 h-24 mx-auto mb-6 bg-white/10 rounded-full flex items-center justify-center">
-            <Search className="h-12 w-12" />
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
+        <div className="text-center text-slate-300 animate-fadeIn">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 glassmorphism rounded-full flex items-center justify-center">
+            <Search className="h-10 w-10 sm:h-12 sm:w-12" />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Nenhum produto encontrado</h3>
-          <p className="text-sm">
+          <h3 className="text-lg sm:text-xl font-semibold mb-2 text-shadow">Nenhum produto encontrado</h3>
+          <p className="text-sm sm:text-base opacity-80">
             {selectedCategory 
               ? 'Esta categoria não possui produtos disponíveis'
               : 'Nenhum produto cadastrado no sistema'
@@ -75,58 +75,60 @@ export const ProductGrid: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col">
       {/* Header com busca e filtros */}
-      <div className="p-6 border-b border-white/20">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="p-4 sm:p-6 border-b border-white/10">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 animate-fadeIn">
           {/* Título e contador */}
           <div>
-            <h2 className="text-2xl font-bold text-white mb-1">{getCategoryName()}</h2>
-            <p className="text-blue-200 text-sm">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 text-shadow">
+              {getCategoryName()}
+            </h2>
+            <p className="text-slate-300 text-sm sm:text-base opacity-90">
               {sortedProducts.length} produto{sortedProducts.length !== 1 ? 's' : ''} 
               {searchTerm && ` encontrado${sortedProducts.length !== 1 ? 's' : ''} para "${searchTerm}"`}
             </p>
           </div>
 
           {/* Controles */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3 flex-wrap gap-2">
             {/* Busca */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-200" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-300" />
               <input
                 type="text"
                 placeholder="Buscar produtos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-transparent w-64"
+                className="pl-10 pr-4 py-2 sm:py-3 glassmorphism rounded-lg text-white placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent w-48 sm:w-64 text-sm sm:text-base"
               />
             </div>
 
             {/* Filtros */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`p-2 rounded-lg transition-colors ${
-                showFilters ? 'bg-white/20 text-white' : 'bg-white/10 text-blue-200 hover:bg-white/20 hover:text-white'
+              className={`p-2 sm:p-3 rounded-lg transition-all duration-300 hover:scale-110 ${
+                showFilters ? 'glassmorphism-card text-white' : 'glassmorphism text-slate-300 hover:bg-white/20 hover:text-white'
               }`}
             >
-              <Filter className="h-4 w-4" />
+              <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
 
             {/* View Mode */}
-            <div className="flex bg-white/10 rounded-lg p-1">
+            <div className="flex glassmorphism rounded-lg p-1">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-2 rounded transition-colors ${
-                  viewMode === 'grid' ? 'bg-white/20 text-white' : 'text-blue-200 hover:text-white'
+                className={`p-2 sm:p-3 rounded transition-all duration-300 hover:scale-110 ${
+                  viewMode === 'grid' ? 'bg-white/20 text-white' : 'text-slate-300 hover:text-white'
                 }`}
               >
-                <Grid3X3 className="h-4 w-4" />
+                <Grid3X3 className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-2 rounded transition-colors ${
-                  viewMode === 'list' ? 'bg-white/20 text-white' : 'text-blue-200 hover:text-white'
+                className={`p-2 sm:p-3 rounded transition-all duration-300 hover:scale-110 ${
+                  viewMode === 'list' ? 'bg-white/20 text-white' : 'text-slate-300 hover:text-white'
                 }`}
               >
-                <List className="h-4 w-4" />
+                <List className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             </div>
           </div>
@@ -134,43 +136,43 @@ export const ProductGrid: React.FC = () => {
 
         {/* Filtros expandidos */}
         {showFilters && (
-          <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10">
+          <div className="mt-4 p-4 glassmorphism rounded-lg border border-white/10 animate-fadeIn">
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-white text-sm font-medium">Ordenar por:</span>
+              <span className="text-white text-sm sm:text-base font-medium">Ordenar por:</span>
               
               <button
                 onClick={() => toggleSort('name')}
-                className={`flex items-center space-x-1 px-3 py-1 rounded-lg text-sm transition-colors ${
-                  sortBy === 'name' ? 'bg-white/20 text-white' : 'bg-white/10 text-blue-200 hover:bg-white/20 hover:text-white'
+                className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm transition-all duration-300 hover:scale-105 ${
+                  sortBy === 'name' ? 'glassmorphism-card text-white' : 'glassmorphism text-slate-300 hover:bg-white/20 hover:text-white'
                 }`}
               >
                 <span>Nome</span>
                 {sortBy === 'name' && (
-                  sortOrder === 'asc' ? <SortAsc className="h-3 w-3" /> : <SortDesc className="h-3 w-3" />
+                  sortOrder === 'asc' ? <SortAsc className="h-3 w-3 sm:h-4 sm:w-4" /> : <SortDesc className="h-3 w-3 sm:h-4 sm:w-4" />
                 )}
               </button>
 
               <button
                 onClick={() => toggleSort('price')}
-                className={`flex items-center space-x-1 px-3 py-1 rounded-lg text-sm transition-colors ${
-                  sortBy === 'price' ? 'bg-white/20 text-white' : 'bg-white/10 text-blue-200 hover:bg-white/20 hover:text-white'
+                className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm transition-all duration-300 hover:scale-105 ${
+                  sortBy === 'price' ? 'glassmorphism-card text-white' : 'glassmorphism text-slate-300 hover:bg-white/20 hover:text-white'
                 }`}
               >
                 <span>Preço</span>
                 {sortBy === 'price' && (
-                  sortOrder === 'asc' ? <SortAsc className="h-3 w-3" /> : <SortDesc className="h-3 w-3" />
+                  sortOrder === 'asc' ? <SortAsc className="h-3 w-3 sm:h-4 sm:w-4" /> : <SortDesc className="h-3 w-3 sm:h-4 sm:w-4" />
                 )}
               </button>
 
               <button
                 onClick={() => toggleSort('stock')}
-                className={`flex items-center space-x-1 px-3 py-1 rounded-lg text-sm transition-colors ${
-                  sortBy === 'stock' ? 'bg-white/20 text-white' : 'bg-white/10 text-blue-200 hover:bg-white/20 hover:text-white'
+                className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm transition-all duration-300 hover:scale-105 ${
+                  sortBy === 'stock' ? 'glassmorphism-card text-white' : 'glassmorphism text-slate-300 hover:bg-white/20 hover:text-white'
                 }`}
               >
                 <span>Estoque</span>
                 {sortBy === 'stock' && (
-                  sortOrder === 'asc' ? <SortAsc className="h-3 w-3" /> : <SortDesc className="h-3 w-3" />
+                  sortOrder === 'asc' ? <SortAsc className="h-3 w-3 sm:h-4 sm:w-4" /> : <SortDesc className="h-3 w-3 sm:h-4 sm:w-4" />
                 )}
               </button>
 
@@ -181,7 +183,7 @@ export const ProductGrid: React.FC = () => {
                     setSortBy('name')
                     setSortOrder('asc')
                   }}
-                  className="px-3 py-1 bg-red-500/20 text-red-200 rounded-lg text-sm hover:bg-red-500/30 transition-colors"
+                  className="px-3 py-2 bg-red-500/20 text-red-200 rounded-lg text-sm hover:bg-red-500/30 transition-all duration-300 hover:scale-105"
                 >
                   Limpar filtros
                 </button>
@@ -192,13 +194,13 @@ export const ProductGrid: React.FC = () => {
       </div>
 
       {/* Grid de produtos */}
-      <div className="flex-1 p-6 overflow-y-auto">
+      <div className="flex-1 p-4 sm:p-6 overflow-y-auto">
         {sortedProducts.length === 0 ? (
           <div className="flex items-center justify-center h-64">
-            <div className="text-center text-white/60">
-              <Search className="h-16 w-16 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">Nenhum produto encontrado</h3>
-              <p className="text-sm">
+            <div className="text-center text-slate-300 animate-fadeIn">
+              <Search className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-4 opacity-50" />
+              <h3 className="text-lg sm:text-xl font-medium mb-2 text-shadow">Nenhum produto encontrado</h3>
+              <p className="text-sm sm:text-base opacity-80">
                 Tente ajustar os filtros ou buscar por outros termos
               </p>
               <button
@@ -207,7 +209,7 @@ export const ProductGrid: React.FC = () => {
                   setSortBy('name')
                   setSortOrder('asc')
                 }}
-                className="mt-4 px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
+                className="mt-4 px-4 py-2 sm:px-6 sm:py-3 glassmorphism text-white rounded-lg hover:bg-white/20 transition-all duration-300 hover:scale-105"
               >
                 Limpar busca
               </button>
@@ -216,8 +218,8 @@ export const ProductGrid: React.FC = () => {
         ) : (
           <div className={
             viewMode === 'grid'
-              ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6"
-              : "space-y-4"
+              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 animate-fadeIn"
+              : "space-y-3 sm:space-y-4 animate-fadeIn"
           }>
             {sortedProducts.map((product) => (
               <ProductCard 

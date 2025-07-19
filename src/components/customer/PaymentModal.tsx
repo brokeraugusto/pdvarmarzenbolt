@@ -122,24 +122,24 @@ export const PaymentModal: React.FC = () => {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-md">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4 safe-area">
+        <div className="bg-white/95 backdrop-blur-2xl rounded-2xl shadow-2xl w-full max-w-md border border-white/20">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-900 to-blue-700 p-6 text-white rounded-t-2xl">
+          <div className="gradient-primary p-4 sm:p-6 text-white rounded-t-2xl">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">Forma de Pagamento</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-shadow">Forma de Pagamento</h2>
               <button
                 onClick={handleClose}
-                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                className="p-2 hover:bg-white/20 rounded-lg transition-all duration-300 hover:scale-110"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             </div>
             <div className="mt-4 text-center">
-              <p className="text-blue-100">Total a pagar:</p>
-              <p className="text-3xl font-bold">{formatPrice(total)}</p>
+              <p className="text-slate-200 text-sm sm:text-base">Total a pagar:</p>
+              <p className="text-2xl sm:text-3xl font-bold text-shadow">{formatPrice(total)}</p>
               {discount > 0 && (
-                <p className="text-green-300 text-sm mt-1">
+                <p className="text-green-300 text-xs sm:text-sm mt-1">
                   Desconto de {formatPrice(discount)} aplicado
                 </p>
               )}
@@ -147,32 +147,32 @@ export const PaymentModal: React.FC = () => {
           </div>
 
           {/* Payment Options */}
-          <div className="p-6 space-y-4">
+          <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
             {loading ? (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Carregando métodos de pagamento...</p>
+                <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-slate-600 mx-auto mb-4"></div>
+                <p className="text-gray-600 text-sm sm:text-base">Carregando métodos de pagamento...</p>
               </div>
             ) : cart.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-600">Carrinho vazio</p>
+                <p className="text-gray-600 text-sm sm:text-base">Carrinho vazio</p>
                 <button
                   onClick={handleClose}
-                  className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="mt-4 px-6 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-all duration-300 hover:scale-105 shadow-lg"
                 >
                   Voltar
                 </button>
               </div>
             ) : availablePaymentMethods.length === 0 ? (
               <div className="text-center py-8">
-                <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-                <p className="text-gray-800 font-medium mb-2">Nenhum método de pagamento disponível</p>
-                <p className="text-gray-600 text-sm mb-4">
+                <AlertTriangle className="h-10 w-10 sm:h-12 sm:w-12 text-yellow-500 mx-auto mb-4" />
+                <p className="text-gray-800 font-medium mb-2 text-sm sm:text-base">Nenhum método de pagamento disponível</p>
+                <p className="text-gray-600 text-xs sm:text-sm mb-4">
                   Configure as integrações do Mercado Pago no painel administrativo.
                 </p>
                 <button
                   onClick={handleClose}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="px-6 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-all duration-300 hover:scale-105 shadow-lg"
                 >
                   Voltar
                 </button>
@@ -183,7 +183,7 @@ export const PaymentModal: React.FC = () => {
                 <button
                   onClick={() => handlePaymentMethod('pix')}
                   disabled={creating || !isMethodAvailable('pix')}
-                  className={`w-full flex items-center space-x-4 p-4 border-2 rounded-xl transition-all group ${
+                  className={`w-full flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 border-2 rounded-xl transition-all duration-300 group hover:scale-105 ${
                     isMethodAvailable('pix')
                       ? 'border-gray-200 hover:border-green-500 hover:bg-green-50'
                       : 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-60'
@@ -194,7 +194,7 @@ export const PaymentModal: React.FC = () => {
                       ? 'bg-green-100 group-hover:bg-green-200'
                       : 'bg-gray-100'
                   }`}>
-                    <QrCode className={`h-8 w-8 ${
+                    <QrCode className={`h-6 w-6 sm:h-8 sm:w-8 ${
                       isMethodAvailable('pix') ? 'text-green-600' : 'text-gray-400'
                     }`} />
                   </div>
@@ -213,7 +213,7 @@ export const PaymentModal: React.FC = () => {
                   </div>
                   {isMethodAvailable('pix') && (
                     <div className="text-right">
-                      <p className="text-green-600 font-medium text-sm">Recomendado</p>
+                      <p className="text-green-600 font-medium text-xs sm:text-sm">Recomendado</p>
                       <p className="text-gray-500 text-xs">Aprovação imediata</p>
                     </div>
                   )}
@@ -223,19 +223,19 @@ export const PaymentModal: React.FC = () => {
                 <button
                   onClick={() => handlePaymentMethod('credit')}
                   disabled={creating || !isMethodAvailable('credit')}
-                  className={`w-full flex items-center space-x-4 p-4 border-2 rounded-xl transition-all group ${
+                  className={`w-full flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 border-2 rounded-xl transition-all duration-300 group hover:scale-105 ${
                     isMethodAvailable('credit')
-                      ? 'border-gray-200 hover:border-blue-500 hover:bg-blue-50'
+                      ? 'border-gray-200 hover:border-slate-500 hover:bg-slate-50'
                       : 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-60'
                   } ${creating ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <div className={`p-3 rounded-xl transition-colors ${
                     isMethodAvailable('credit')
-                      ? 'bg-blue-100 group-hover:bg-blue-200'
+                      ? 'bg-slate-100 group-hover:bg-slate-200'
                       : 'bg-gray-100'
                   }`}>
-                    <CreditCard className={`h-8 w-8 ${
-                      isMethodAvailable('credit') ? 'text-blue-600' : 'text-gray-400'
+                    <CreditCard className={`h-6 w-6 sm:h-8 sm:w-8 ${
+                      isMethodAvailable('credit') ? 'text-slate-600' : 'text-gray-400'
                     }`} />
                   </div>
                   <div className="flex-1 text-left">
@@ -253,7 +253,7 @@ export const PaymentModal: React.FC = () => {
                   </div>
                   {isMethodAvailable('credit') && (
                     <div className="text-right">
-                      <p className="text-blue-600 font-medium text-sm">Parcelável</p>
+                      <p className="text-slate-600 font-medium text-xs sm:text-sm">Parcelável</p>
                       <p className="text-gray-500 text-xs">Insira no terminal</p>
                     </div>
                   )}
@@ -263,7 +263,7 @@ export const PaymentModal: React.FC = () => {
                 <button
                   onClick={() => handlePaymentMethod('debit')}
                   disabled={creating || !isMethodAvailable('debit')}
-                  className={`w-full flex items-center space-x-4 p-4 border-2 rounded-xl transition-all group ${
+                  className={`w-full flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 border-2 rounded-xl transition-all duration-300 group hover:scale-105 ${
                     isMethodAvailable('debit')
                       ? 'border-gray-200 hover:border-purple-500 hover:bg-purple-50'
                       : 'border-gray-100 bg-gray-50 cursor-not-allowed opacity-60'
@@ -274,7 +274,7 @@ export const PaymentModal: React.FC = () => {
                       ? 'bg-purple-100 group-hover:bg-purple-200'
                       : 'bg-gray-100'
                   }`}>
-                    <Smartphone className={`h-8 w-8 ${
+                    <Smartphone className={`h-6 w-6 sm:h-8 sm:w-8 ${
                       isMethodAvailable('debit') ? 'text-purple-600' : 'text-gray-400'
                     }`} />
                   </div>
@@ -293,7 +293,7 @@ export const PaymentModal: React.FC = () => {
                   </div>
                   {isMethodAvailable('debit') && (
                     <div className="text-right">
-                      <p className="text-purple-600 font-medium text-sm">À vista</p>
+                      <p className="text-purple-600 font-medium text-xs sm:text-sm">À vista</p>
                       <p className="text-gray-500 text-xs">Insira no terminal</p>
                     </div>
                   )}
@@ -301,8 +301,8 @@ export const PaymentModal: React.FC = () => {
 
                 {creating && (
                   <div className="text-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                    <p className="text-gray-600 text-sm">Criando pedido...</p>
+                    <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-b-2 border-slate-600 mx-auto mb-2"></div>
+                    <p className="text-gray-600 text-xs sm:text-sm">Criando pedido...</p>
                   </div>
                 )}
               </>
@@ -311,10 +311,10 @@ export const PaymentModal: React.FC = () => {
 
           {/* Customer Info */}
           {customer && cart.length > 0 && availablePaymentMethods.length > 0 && (
-            <div className="px-6 pb-4">
+            <div className="px-4 sm:px-6 pb-4">
               <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                <h3 className="font-medium text-green-800 mb-1">Cliente Identificado</h3>
-                <p className="text-green-700 text-sm">{customer.name}</p>
+                <h3 className="font-medium text-green-800 mb-1 text-sm sm:text-base">Cliente Identificado</h3>
+                <p className="text-green-700 text-xs sm:text-sm">{customer.name}</p>
                 <p className="text-green-600 text-xs">
                   Desconto de {customer.discount_percentage}% aplicado ({customer.type})
                 </p>
@@ -323,10 +323,10 @@ export const PaymentModal: React.FC = () => {
           )}
 
           {/* Footer */}
-          <div className="p-6 bg-gray-50 rounded-b-2xl">
+          <div className="p-4 sm:p-6 bg-gray-50 rounded-b-2xl">
             <button
               onClick={handleClose}
-              className="w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors"
+              className="w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition-all duration-300 hover:scale-105 text-sm sm:text-base"
             >
               Voltar ao Carrinho
             </button>

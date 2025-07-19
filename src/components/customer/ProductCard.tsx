@@ -28,10 +28,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'g
 
   if (viewMode === 'list') {
     return (
-      <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/15 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group">
-        <div className="flex items-center space-x-4">
+      <div className="glassmorphism-card rounded-2xl p-4 sm:p-6 hover:scale-[1.02] hover:shadow-2xl group animate-fadeIn">
+        <div className="flex items-center space-x-3 sm:space-x-4">
           {/* Imagem */}
-          <div className="w-20 h-20 flex-shrink-0 overflow-hidden rounded-xl">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 overflow-hidden rounded-xl shadow-lg">
             {product.image ? (
               <img
                 src={product.image}
@@ -40,28 +40,28 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'g
                 loading="lazy"
               />
             ) : (
-              <div className="w-full h-full bg-white/10 flex items-center justify-center">
-                <Package className="h-8 w-8 text-white/50" />
+              <div className="w-full h-full glassmorphism flex items-center justify-center">
+                <Package className="h-6 w-6 sm:h-8 sm:w-8 text-white/50" />
               </div>
             )}
           </div>
 
           {/* Informações */}
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-white text-lg leading-tight truncate">
+            <h3 className="font-semibold text-white text-base sm:text-lg leading-tight truncate text-shadow">
               {product.name}
             </h3>
             
-            <p className="text-blue-100 text-sm opacity-80 line-clamp-2 mt-1">
+            <p className="text-slate-200 text-xs sm:text-sm opacity-80 line-clamp-2 mt-1">
               {product.description}
             </p>
 
-            <div className="flex items-center space-x-4 mt-2">
-              <span className="text-2xl font-bold text-white">
+            <div className="flex items-center space-x-2 sm:space-x-4 mt-2">
+              <span className="text-lg sm:text-2xl font-bold text-white text-shadow">
                 {formatPrice(product.price)}
               </span>
               
-              <span className={`text-sm ${stockStatus.color}`}>
+              <span className={`text-xs sm:text-sm font-medium ${stockStatus.color}`}>
                 {stockStatus.label}
               </span>
             </div>
@@ -72,9 +72,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'g
             <button
               onClick={() => addToCart(product)}
               disabled={product.stock === 0}
-              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-3 rounded-xl transition-all duration-300 hover:scale-110 hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-3 sm:p-4 rounded-xl transition-all duration-300 hover:scale-110 hover:shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
             >
-              <Plus className="h-5 w-5" />
+              <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
           </div>
         </div>
@@ -83,9 +83,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'g
   }
 
   return (
-    <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-xl group">
+    <div className="glassmorphism-card rounded-2xl p-4 sm:p-6 hover:scale-105 hover:shadow-2xl group animate-fadeIn">
       {/* Imagem */}
-      <div className="aspect-square mb-4 overflow-hidden rounded-xl relative">
+      <div className="aspect-square mb-4 overflow-hidden rounded-xl relative shadow-lg">
         {product.image ? (
           <img
             src={product.image}
@@ -94,14 +94,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'g
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full bg-white/10 flex items-center justify-center">
-            <Package className="h-12 w-12 text-white/50" />
+          <div className="w-full h-full glassmorphism flex items-center justify-center">
+            <Package className="h-10 w-10 sm:h-12 sm:w-12 text-white/50" />
           </div>
         )}
         
         {/* Badge de estoque */}
         <div className="absolute top-2 right-2">
-          <span className={`px-2 py-1 rounded-full text-xs font-medium bg-black/50 backdrop-blur-sm ${stockStatus.color}`}>
+          <span className={`px-2 py-1 rounded-full text-xs font-medium glassmorphism-dark ${stockStatus.color} shadow-lg`}>
             {stockStatus.label}
           </span>
         </div>
@@ -109,18 +109,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'g
       
       {/* Informações */}
       <div className="space-y-2">
-        <h3 className="font-semibold text-white text-lg leading-tight line-clamp-2">
+        <h3 className="font-semibold text-white text-base sm:text-lg leading-tight line-clamp-2 text-shadow">
           {product.name}
         </h3>
         
-        <p className="text-blue-100 text-sm opacity-80 line-clamp-2">
+        <p className="text-slate-200 text-xs sm:text-sm opacity-80 line-clamp-2">
           {product.description}
         </p>
         
         {/* Preço e botão */}
         <div className="flex items-center justify-between pt-2">
           <div>
-            <span className="text-2xl font-bold text-white">
+            <span className="text-lg sm:text-2xl font-bold text-white text-shadow">
               {formatPrice(product.price)}
             </span>
           </div>
@@ -128,16 +128,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'g
           <button
             onClick={() => addToCart(product)}
             disabled={product.stock === 0}
-            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-3 rounded-xl transition-all duration-300 hover:scale-110 hover:shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-3 sm:p-4 rounded-xl transition-all duration-300 hover:scale-110 hover:shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
         </div>
       </div>
       
       {/* Indicador de estoque baixo */}
       {product.stock > 0 && product.stock < 10 && (
-        <div className="mt-3 text-xs text-yellow-300 bg-yellow-500/20 px-2 py-1 rounded-lg text-center">
+        <div className="mt-3 text-xs sm:text-sm text-yellow-300 bg-yellow-500/20 backdrop-blur-sm px-2 py-1 rounded-lg text-center border border-yellow-500/30 shadow-lg">
           Últimas {product.stock} unidades!
         </div>
       )}
