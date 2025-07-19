@@ -16,9 +16,18 @@ export const supabase = createClient<Database>(
     auth: {
       persistSession: false // PDV não precisa de sessões persistentes
     },
+    db: {
+      schema: 'public'
+    },
     global: {
       headers: {
-        'apikey': supabaseAnonKey || 'placeholder-key'
+        'apikey': supabaseAnonKey || 'placeholder-key',
+        'Authorization': `Bearer ${supabaseAnonKey || 'placeholder-key'}`
+      }
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 2
       }
     }
   }
