@@ -41,13 +41,21 @@ export const testConnection = async (): Promise<boolean> => {
       return false
     }
 
-    // Test with a simple query that should always work
+    // Test with a simple query on a known table
     const { data, error } = await supabase
-      .rpc('now') // Built-in PostgreSQL function
+      .from('categories')
+      .select('count', { count: 'exact', head: true })
+      .limit(1)
       
     if (error) {
-      console.error('Supabase connection test failed:', error)
-      return false
+      // Ignore "no rows found" error as it means connection works but table is empty
+      if (error.code === 'PGRST116') {
+        console.log('Supabase connection test successful (empty table)')
+        return true
+      } else {
+        console.error('Supabase connection test failed:', error)
+        return false
+      }
     }
 
     console.log('Supabase connection test successful')
