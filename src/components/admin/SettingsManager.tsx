@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import { Save, CreditCard, Percent, Store, Key, Upload, Database, Smartphone } from 'lucide-react'
+import { Save, CreditCard, Percent, Store, Key, Upload, Database, Smartphone, ToggleLeft, ToggleRight } from 'lucide-react'
 import { MercadoPagoSettings } from './MercadoPagoSettings'
 import { ImageUpload } from './ImageUpload'
 import { DatabaseStatus } from './DatabaseStatus'
 import { PointDeviceManager } from './PointDeviceManager'
 import { settingsService } from '../../services/settingsService'
-import { PaymentFees } from '../../types'
+import { PaymentFees, PaymentMethodSettings } from '../../types'
 
-type SettingsTab = 'general' | 'database' | 'mercadopago' | 'point' | 'fees' | 'discounts'
+type SettingsTab = 'general' | 'database' | 'mercadopago' | 'point' | 'fees' | 'discounts' | 'payment-methods'
 
 export const SettingsManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('database')
@@ -40,6 +40,24 @@ export const SettingsManager: React.FC = () => {
     }
   })
 
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodSettings>({
+    pix: {
+      enabled: true,
+      name: 'PIX',
+      description: 'Pagamento instantâneo via QR Code'
+    },
+    credit: {
+      enabled: true,
+      name: 'Cartão de Crédito',
+      description: 'Via terminal Mercado Point'
+    },
+    debit: {
+      enabled: true,
+      name: 'Cartão de Débito',
+      description: 'Via terminal Mercado Point'
+    }
+  })
+
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -50,9 +68,10 @@ export const SettingsManager: React.FC = () => {
 
   const loadSettings = async () => {
     try {
-      const [appSettings, fees] = await Promise.all([
+      const [appSettings, fees, methods] = await Promise.all([
         settingsService.getSettings(),
-        settingsService.getPaymentFees()
+        settingsService.getPaymentFees(),
+        settingsService.getPaymentMethodSettings()
       ])
       
       setSettings({
@@ -65,6 +84,7 @@ export const SettingsManager: React.FC = () => {
       })
       
       setPaymentFees(fees)
+      setPaymentMethods(methods)
     } catch (error) {
       console.error('Error loading settings:', error)
     } finally {
@@ -81,6 +101,7 @@ export const SettingsManager: React.FC = () => {
           storeName: settings.storeName,
           storeVersion: settings.storeVersion,
           storeLogo: settings.storeLogo,
+          paymentMethods,
           mercadoPago: {
             accessToken: '',
             publicKey: '',
@@ -95,7 +116,8 @@ export const SettingsManager: React.FC = () => {
           },
           paymentFees
         }),
-        settingsService.updatePaymentFees(paymentFees)
+        settingsService.updatePaymentFees(paymentFees),
+        settingsService.updatePaymentMethodSettings(paymentMethods)
       ])
       
       setSaved(true)

@@ -1,3 +1,4 @@
+import { settingsService } from './settingsService'
 import { supabase } from '../lib/supabase'
 import { PixPaymentData, CardPaymentData, MercadoPagoTransaction } from '../types'
 import { mercadoPagoCredentialsService } from './mercadoPagoCredentialsService'
@@ -58,12 +59,26 @@ class MercadoPagoService {
   // ==========================================
 
   async isPaymentMethodAvailable(method: 'pix' | 'credit' | 'debit'): Promise<boolean> {
+    // Verificar se o método está habilitado nas configurações
+    const paymentSettings = await settingsService.getPaymentMethodSettings()
+    if (!paymentSettings[method].enabled) {
+      return false
+    }
+    
+    // Verificar se as credenciais estão configuradas
     const availableMethods = mercadoPagoCredentialsService.getAvailablePaymentMethods()
     return availableMethods.includes(method)
   }
 
   async getAvailablePaymentMethods(): Promise<string[]> {
-    return mercadoPagoCredentialsService.getAvailablePaymentMethods()
+    const paymentSettings = await settingsService.getPaymentMethodSettings()
+    const credentialMethods = mercadoPagoCredentialsService.getAvailablePaymentMethods()
+    
+    // Filtrar apenas métodos habilitados nas configurações
+    return credentialMethods.filter(method => {
+      const methodKey = method as 'pix' | 'credit' | 'debit'
+      return paymentSettings[methodKey]?.enabled === true
+    })
   }
 
   // ==========================================

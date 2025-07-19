@@ -123,11 +123,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'g
             <span className="text-2xl font-bold text-white">
               {formatPrice(product.price)}
             </span>
-            {product.margin_percentage > 0 && (
-              <p className="text-xs text-green-300 opacity-80">
-                Margem: {product.margin_percentage.toFixed(0)}%
-              </p>
-            )}
           </div>
           
           <button

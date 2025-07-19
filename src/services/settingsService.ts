@@ -5,6 +5,7 @@ interface AppSettings {
   storeName: string
   storeVersion: string
   storeLogo: string
+  paymentMethods: PaymentMethodSettings
   mercadoPago: {
     accessToken: string
     publicKey: string
@@ -43,6 +44,23 @@ class SettingsService {
       storeName: import.meta.env.VITE_APP_NAME || 'Mercadinho',
       storeVersion: import.meta.env.VITE_APP_VERSION || '1.0.0',
       storeLogo: '',
+      paymentMethods: {
+        pix: {
+          enabled: true,
+          name: 'PIX',
+          description: 'Pagamento instantâneo via QR Code'
+        },
+        credit: {
+          enabled: true,
+          name: 'Cartão de Crédito',
+          description: 'Via terminal Mercado Point'
+        },
+        debit: {
+          enabled: true,
+          name: 'Cartão de Débito',
+          description: 'Via terminal Mercado Point'
+        }
+      },
       mercadoPago: {
         accessToken: import.meta.env.VITE_MERCADO_PAGO_ACCESS_TOKEN || '',
         publicKey: import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY || '',
@@ -100,6 +118,27 @@ class SettingsService {
     
     this.saveToStorage()
     return { ...this.settings }
+  }
+
+  async getPaymentMethodSettings(): Promise<PaymentMethodSettings> {
+    await this.delay(200)
+    return { ...this.settings.paymentMethods }
+  }
+
+  async updatePaymentMethodSettings(settings: PaymentMethodSettings): Promise<PaymentMethodSettings> {
+    await this.delay(400)
+    
+    this.settings.paymentMethods = { ...settings }
+    this.saveToStorage()
+    return { ...this.settings.paymentMethods }
+  }
+
+  async togglePaymentMethod(method: 'pix' | 'credit' | 'debit', enabled: boolean): Promise<PaymentMethodSettings> {
+    await this.delay(300)
+    
+    this.settings.paymentMethods[method].enabled = enabled
+    this.saveToStorage()
+    return { ...this.settings.paymentMethods }
   }
 
   async getPaymentFees(): Promise<PaymentFees> {

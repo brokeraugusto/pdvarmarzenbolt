@@ -138,6 +138,24 @@ export interface MercadoPagoConfig {
   updatedBy?: string
 }
 
+export interface PaymentMethodSettings {
+  pix: {
+    enabled: boolean
+    name: string
+    description: string
+  }
+  credit: {
+    enabled: boolean
+    name: string
+    description: string
+  }
+  debit: {
+    enabled: boolean
+    name: string
+    description: string
+  }
+}
+
 export interface MercadoPagoTransaction {
   id: string
   mpPaymentId?: string
