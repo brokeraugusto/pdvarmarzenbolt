@@ -41,11 +41,10 @@ export const testConnection = async (): Promise<boolean> => {
       return false
     }
 
+    // Test with a simple query that should always work
     const { data, error } = await supabase
-      .from('categories')
-      .select('count')
-      .limit(1)
-
+      .rpc('now') // Built-in PostgreSQL function
+      
     if (error) {
       console.error('Supabase connection test failed:', error)
       return false
@@ -55,6 +54,32 @@ export const testConnection = async (): Promise<boolean> => {
     return true
   } catch (err) {
     console.error('Supabase connection test error:', err)
+    return false
+  }
+}
+
+// Função alternativa para testar com tabelas
+export const testTableConnection = async (): Promise<boolean> => {
+  try {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Supabase credentials not configured')
+      return false
+    }
+
+    const { data, error } = await supabase
+      .from('settings')
+      .select('count', { count: 'exact', head: true })
+      .limit(1)
+
+    if (error) {
+      console.error('Supabase table connection test failed:', error)
+      return false
+    }
+
+    console.log('Supabase table connection test successful')
+    return true
+  } catch (err) {
+    console.error('Supabase table connection test error:', err)
     return false
   }
 }

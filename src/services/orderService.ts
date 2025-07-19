@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase'
+import { testConnection } from '../lib/supabase'
 import { Order, CartItem, User } from '../types'
 import { isConfigured as isSupabaseConfigured } from '../lib/supabase'
 

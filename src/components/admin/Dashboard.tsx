@@ -139,6 +139,8 @@ export const Dashboard: React.FC = () => {
       setRecentOrders(allOrders.slice(0, 5))
     } catch (error) {
       console.error('Error refreshing recent data:', error)
+      // Don't show error for refresh failures, just log them
+      // The main error handling is in loadDashboardData
     } finally {
       setRefreshing(false)
     }
