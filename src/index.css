@@ -25,7 +25,7 @@
   }
   
   .glassmorphism-card {
-    @apply bg-white/8 backdrop-blur-2xl border border-white/15 shadow-xl hover:bg-white/12 transition-all duration-300;
+    @apply bg-white/[.08] backdrop-blur-2xl border border-white/[.15] shadow-xl hover:bg-white/[.12] transition-all duration-300;
   }
   
   .gradient-primary {
